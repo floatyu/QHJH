@@ -5,6 +5,7 @@ $(function () {
     //为发送按钮绑定鼠标点击事件
     $('#btnSend').on('click',function(){
         var text = $('#ipt').val().trim()
+        
         if(text.length<=0){
             return $('#ipt').val('')
         }
@@ -19,15 +20,54 @@ $(function () {
     })
     //获取聊天机器人发送回来的消息
     function getMsg(text){
+       
         $.ajax({
             method:'GET',
-            url: 'http://ajax.frontend.itheima.net:3006/api/robot',
+            url: 'http://www.liulongbin.top:3006/api/robot', //本接口由于跨域问题，导致数据无法传回（待解决）
+            // dataType: 'jsonp',  // 请求方式为jsonp
+            // jsonpCallback: "function(res)",  // 自定义回调函数名
             data:{
                 spoken:text
             },
             success:function(res){
                 console.log(res)
+                if(res.message==="success"){
+                    //接收聊天消息
+                    var msg = res.data.info.text
+                    $('#talk_list').append('<li class="left_word"><img src="img/person01.png" /><span>' + msg + '</span></li >')
+                    //重置滚动条的位置
+                    resetui()
+                    //调用getVoice函数 把文本转化为语音
+                    getVoice(msg)
+                }
             }
         })
     }
+    //把文字转化为语音进行播放
+    function getVoice(text){
+        $.ajax({
+            method:'GET',
+            url:"http://www.liulongbin.top:3006/api/synthesize",
+            data:{
+                text:text
+            },
+            success:function(res){
+                console.log(res)
+                if(res.status ===200){
+                    //播放语音
+                    $('#voice').attr('src',res.voiceUrl)
+                }
+            }
+
+        })
+    }
+    //为文本框绑定 keyup事件
+    $('#ipt').on('keyup',function(e){
+        // console.log(e.keyCode)//可以获取到当前按键的编码
+        if(e.keyCode===13){
+            // console.log('用户弹起了回车键')
+            //调用按钮元素的click函数，可以通过编程的形式触发按钮的点击事件
+            $('#btnSend').click()
+        }
+    })
 })
